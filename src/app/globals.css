@@ -1,0 +1,119 @@
+@import "tailwindcss";
+
+/* ONE file to change per site. Day 6 is a museum of software prices, so the
+   palette is archival board and paper, not the scaffold's teal.
+
+   CONTRAST — MEASURED, not estimated, and measured against the surface each
+   colour actually sits on. Every chip, tag and label on this site sits on
+   --color-board, never on --color-ground, so board is the number that counts.
+   Day 2 shipped three tokens measured against the page background with a
+   comment claiming they passed; all three failed where they were really used.
+
+   Two values were changed BECAUSE of this measurement:
+     - rise was #E8623C. White-on-rise measured 3.09:1, which fails AA for the
+       12px price chip above the line (12px bold is not "large text"). Darkened
+       to #BF4318 -> 4.78:1.
+     - wire was #B3A896 / #4A4438. The wire IS the price line, so WCAG 1.4.11
+       wants 3:1 as essential graphics. Both measured under 2:1. Now 4.04:1
+       light and 3.67:1 dark.
+
+   light, text on board #EDE9E0:
+     ink     #1A1714  14.73:1  AAA
+     muted   #6E655A   4.72:1  AA
+     accent  #8A4326   5.95:1  AA
+     rise-ink #FFF3EC on rise #BF4318   4.78:1  AA
+     cut-ink  #E8F6F1 on cut  #1E6F63   5.38:1  AA
+     wire    #7D6F58   4.04:1  (graphics, needs 3:1)
+   light, text on ground #F5F3EE:
+     ink 16.10:1 AAA · muted 5.16:1 AA · accent 6.50:1 AA
+
+   dark, text on board #1C1A16:
+     ink     #F0ECE3  14.74:1  AAA
+     muted   #9A9084   5.54:1  AA
+     accent  #E39A76   7.57:1  AAA
+     rise-ink #20110B on rise #FF7B54   7.16:1  AAA
+     cut-ink  #0B1A16 on cut  #43C0A6   7.95:1  AAA
+     wire    #7C7260   3.67:1  (graphics, needs 3:1)
+   dark, text on ground #141310:
+     ink 15.76:1 AAA · muted 5.92:1 AA · accent 8.09:1 AAA
+
+   --color-rule is decorative hairline only. It carries no text and no meaning
+   the wire does not already carry, so it is deliberately below 3:1.
+*/@theme {
+  --color-ground: #f5f3ee;
+  --color-board: #ede9e0;
+  --color-surface: #ffffff;
+  --color-ink: #1a1714;
+  --color-muted: #6e655a;
+  --color-rule: #dbd3c4;
+
+  /* semantic, not accent: what the price did */
+  --color-rise: #bf4318;
+  --color-rise-ink: #fff3ec;
+  --color-cut: #1e6f63;
+  --color-cut-ink: #e8f6f1;
+  --color-wire: #7d6f58;
+
+  --color-accent: #8a4326;
+  --color-accent-soft: #f0dfd6;
+
+  /* next/font sets the -loaded vars in layout.tsx; the stacks after them are
+     the real fallbacks, so a font failure degrades instead of going invisible. */
+  --font-display: var(--font-display-loaded), ui-serif, Georgia, Cambria, serif;
+  --font-body: var(--font-body-loaded), ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-mono: var(--font-mono-loaded), ui-monospace, SFMono-Regular, Menlo, monospace;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --color-ground: #141310;
+    --color-board: #1c1a16;
+    --color-surface: #201d19;
+    --color-ink: #f0ece3;
+    --color-muted: #9a9084;
+    --color-rule: #332f27;
+    --color-rise: #ff7b54;
+    --color-rise-ink: #20110b;
+    --color-cut: #43c0a6;
+    --color-cut-ink: #0b1a16;
+    --color-wire: #7c7260;
+    --color-accent: #e39a76;
+    --color-accent-soft: #2a1a12;
+  }
+}
+:root[data-theme="dark"] {
+  --color-ground: #141310;
+  --color-board: #1c1a16;
+  --color-surface: #201d19;
+  --color-ink: #f0ece3;
+  --color-muted: #9a9084;
+  --color-rule: #332f27;
+  --color-rise: #ff7b54;
+  --color-rise-ink: #20110b;
+  --color-cut: #43c0a6;
+  --color-cut-ink: #0b1a16;
+  --color-wire: #7c7260;
+  --color-accent: #e39a76;
+  --color-accent-soft: #2a1a12;
+}
+
+html,
+body {
+  background: var(--color-ground);
+  color: var(--color-ink);
+}
+body {
+  font-family: var(--font-body);
+}
+:focus-visible {
+  outline: 2px solid var(--color-ink);
+  outline-offset: 3px;
+}
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    transition-duration: 0.01ms !important;
+    animation-duration: 0.01ms !important;
+  }
+}
