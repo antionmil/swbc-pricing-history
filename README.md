@@ -9,10 +9,16 @@ Live at **pricinghistory.onedaybuilt.com**. Day 6 of
 
 ## What it does
 
-Each tool is one exhibit. The wire's height is the price, so a long flat wire is
-a price that held and a step is the day it moved. The value is printed above the
-wire; a price tag hangs below it. Every tag links to the exact archived page the
-number was read from.
+Each tool is one exhibit, with **one line per plan**. The wire's height is the
+price, so a long flat wire is a price that held and a step is the day it moved.
+The value is printed above the wire; a price tag hangs below it. Every tag links
+to the exact archived page the number was read from.
+
+A plan keeps one line across a rename where it is plainly the same slot in the
+lineup — Linear's Standard became Basic, Notion's Team became Plus. It does not
+keep one line across a plan that merely shares a word: ZEIT sold a $15 "Premium"
+tier that is not the ancestor of today's Vercel Pro, and folding it in reported
+Pro as $15 in 2017 when the page said $50.
 
 Exhibits are ordered by **how good the record is** — a score over how many
 years the archive caught, how densely, how recently, and whether the price ever
@@ -24,7 +30,7 @@ past, so the first thing you see is what the tool charges now.
 
 ## Architecture
 
-**No LLM and no cron.** The corpus is 125 numbers and ships in the bundle as a
+**No LLM and no cron.** The corpus is 276 numbers across 35 plan lines and ships in the bundle as a
 TypeScript module, so the wall is one static file with no request-time work and
 no cold start.
 
@@ -39,7 +45,8 @@ nothing is ever guessed.
 ```
 src/data/series.ts     the corpus — every point, with its Wayback timestamp
 src/lib/wall.ts        the maths: x/y scales, hold spans, sort order
-src/components/Exhibit.tsx   one tool: wire, value chips, hanging tags
+src/components/Exhibit.tsx   one tool: plan tabs, wire, value chips, tags
+src/components/Hero.tsx      the opener, which draws the page's own idea
 src/app/page.tsx       the wall, plus the percentage-priced section
 src/app/api/og/route.tsx     the share image
 src/app/api/here/route.ts    the visitor counter

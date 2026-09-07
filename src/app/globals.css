@@ -109,3 +109,93 @@ body {
     animation-duration: 0.01ms !important;
   }
 }
+
+/* ---- the opener ----------------------------------------------------------
+   Every rule below is decorative. The RESTING state is the default in each
+   case, so the finished page is what renders when JavaScript never runs, when
+   the animation class is absent, and when the visitor asks for reduced motion.
+   Nothing is parked at opacity 0 waiting for a script to release it — that is
+   the failure where a page ships blank to anyone the script does not reach.
+
+   The sequence is staged rather than scattered: eyebrow, then the two title
+   lines rising out of a mask, then the wire drawing itself, then its value
+   chips landing one by one, then the lede, the figures and the key. It reads
+   as one movement instead of six separate effects. */
+
+@keyframes hero-rise-in {
+  from {
+    transform: translateY(105%) rotate(1.2deg);
+  }
+  to {
+    transform: translateY(0) rotate(0);
+  }
+}
+@keyframes hero-fade-in {
+  from {
+    opacity: 0;
+    transform: translateY(9px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+@keyframes hero-draw {
+  from {
+    stroke-dashoffset: var(--len);
+  }
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+@keyframes hero-pop {
+  from {
+    opacity: 0;
+    transform: scale(0.72);
+  }
+  60% {
+    transform: scale(1.06);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+/* the mask each title line rises out of */
+.hero-line {
+  display: block;
+  overflow: hidden;
+  padding-bottom: 0.06em;
+}
+.hero-rise {
+  display: block;
+}
+
+.hero-run .hero-rise {
+  animation: hero-rise-in 0.82s cubic-bezier(0.16, 0.84, 0.28, 1) var(--d, 0ms) both;
+}
+.hero-run .hero-i {
+  animation: hero-fade-in 0.62s cubic-bezier(0.22, 0.75, 0.3, 1) var(--d, 0ms) both;
+}
+.hero-run .hero-draw {
+  /* 320 comfortably exceeds the path length in viewBox units, so the dash
+     covers it whatever the exact geometry. */
+  --len: 320;
+  stroke-dasharray: var(--len);
+  animation: hero-draw 0.95s cubic-bezier(0.4, 0, 0.2, 1) 340ms both;
+}
+.hero-run .hero-node {
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: hero-pop 0.44s cubic-bezier(0.2, 0.9, 0.3, 1.25) var(--d, 0ms) both;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .hero-run .hero-rise,
+  .hero-run .hero-i,
+  .hero-run .hero-draw,
+  .hero-run .hero-node {
+    animation: none;
+  }
+}

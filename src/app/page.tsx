@@ -1,8 +1,9 @@
 import { Exhibit } from "@/components/Exhibit";
+import { Hero } from "@/components/Hero";
+import { Here } from "@/components/Here";
 import { SponsorSlot } from "@/components/SponsorSlot";
 import { PERCENT } from "@/data/series";
-import { Here } from "@/components/Here";
-import { sorted, classify, lastRise, quality, isStale } from "@/lib/wall";
+import { sorted, allMoves, totalPoints } from "@/lib/wall";
 
 /* The page itself is static: every price ships in the bundle, so there is no
    cold start and no request-time work on the thing people came to read.
@@ -14,78 +15,17 @@ export const revalidate = 86400;
 
 export default function Page() {
   const tools = sorted();
-
-  const rises = tools.flatMap((s) => {
-    const m = classify(s.points);
-    return s.points.map((p, i) => ({ s, p, m: m[i] })).filter((r) => r.m === "rise");
-  });
-  const cuts = tools.flatMap((s) => {
-    const m = classify(s.points);
-    return s.points.map((p, i) => ({ s, p, m: m[i] })).filter((r) => r.m === "cut");
-  });
+  const { rises, cuts } = allMoves();
   // every point on this page IS one archived page, and each one is linked.
   // Do not quote the wider corpus here — the tile must count what is on screen.
-  const linked =
-    tools.reduce((n, s) => n + s.points.length, 0) +
-    PERCENT.reduce((n, s) => n + s.points.length, 0);
+  const linked = totalPoints() + PERCENT.reduce((n, s) => n + s.points.length, 0);
   const toolCount = tools.length + PERCENT.length;
 
   return (
     <main className="mx-auto max-w-[840px] px-5 pb-24 pt-11 sm:px-6">
-      <header className="border-b-2 border-ink pb-5">
-        <p className="font-mono text-[11px] uppercase tracking-[.18em] text-muted">
-          onedaybuilt · day 06
-        </p>
-        <h1 className="mt-3 font-display text-[clamp(38px,7.5vw,84px)] font-black leading-[.9] tracking-[-.025em] text-balance">
-          What software
-          <br />
-          used to cost
-        </h1>
-        <p className="mt-4 max-w-[60ch] text-[15.5px] text-muted">
-          Every price these tools ever published, hung in order from the line that price
-          drew. A long flat wire is a price that <b className="font-semibold text-ink">held</b>.
-          A step is the day it moved. Read straight off the archived pages at{" "}
-          <b className="font-semibold text-ink">web.archive.org</b> — every tag opens the
-          page it came from.
-        </p>
+      <Hero tools={toolCount} points={linked} rises={rises} cuts={cuts} />
 
-        <Here />
-
-        <dl className="mt-7 grid grid-cols-2 gap-x-8 gap-y-5 sm:grid-cols-4">
-          {[
-            { k: "tools", v: String(toolCount) },
-            { k: "archived pages linked", v: String(linked) },
-            { k: "price rises found", v: String(rises.length) },
-            { k: "price cuts found", v: String(cuts.length) },
-          ].map(({ k, v }) => (
-            <div key={k}>
-              <dd className="font-display text-4xl font-black leading-none tabular-nums">{v}</dd>
-              <dt className="mt-1.5 font-mono text-[10px] uppercase tracking-[.13em] text-muted">
-                {k}
-              </dt>
-            </div>
-          ))}
-        </dl>
-
-        <div className="mt-7 flex flex-wrap gap-5 font-mono text-[11px] tracking-[.03em] text-muted">
-          <span>
-            <i className="mr-1.5 inline-block h-[11px] w-[11px] rounded-[2px] bg-rise align-[-1px]" />
-            price rose
-          </span>
-          <span>
-            <i className="mr-1.5 inline-block h-[11px] w-[11px] rounded-[2px] bg-cut align-[-1px]" />
-            price fell
-          </span>
-          <span>
-            <i className="mr-1.5 inline-block h-[11px] w-[11px] rounded-[2px] border border-rule bg-board align-[-1px]" />
-            unchanged
-          </span>
-          <span>
-            <i className="mr-1.5 inline-block h-[11px] w-[11px] rounded-[2px] bg-ink align-[-1px]" />
-            first published price
-          </span>
-        </div>
-      </header>
+      <Here />
 
       <p className="mt-7 border-l-[3px] border-accent bg-board px-4 py-3 text-[13.5px] text-muted">
         Each rail opens on <b className="font-semibold text-ink">today</b> — scroll it left
