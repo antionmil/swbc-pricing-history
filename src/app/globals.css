@@ -89,6 +89,21 @@
   --color-accent-soft: #2a1a12;
 }
 
+/* The hanging tags cast a small drop shadow. It was a hardcoded near-black,
+   which is invisible on a dark board — a value that is not a token is a bug
+   waiting for the other colour scheme. */
+:root {
+  --tag-shadow: rgba(23, 22, 26, 0.14);
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --tag-shadow: rgba(0, 0, 0, 0.45);
+  }
+}
+:root[data-theme="dark"] {
+  --tag-shadow: rgba(0, 0, 0, 0.45);
+}
+
 html,
 body {
   background: var(--color-ground);

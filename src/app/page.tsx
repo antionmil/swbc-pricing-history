@@ -34,8 +34,9 @@ export default function Page() {
             Priced as a percentage
           </h2>
           <p className="mt-3 max-w-[70ch] text-sm text-muted">
-            These take a share of the transaction rather than a fee per seat. They cannot
-            share a dollar axis with the plans above without distorting it, so they are
+            Stripe is the 27th tool in the count above, and the only one not on the wall:
+            it takes a share of the transaction rather than a fee per seat. That cannot
+            share a dollar axis with the plans above without distorting it, so it is
             listed as the pages printed them.
           </p>
           <div className="mt-6 overflow-x-auto">

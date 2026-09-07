@@ -179,11 +179,11 @@ function Rail({ s, plan }: { s: Series; plan: Plan }) {
           const m = r.move;
           const skin =
             m === "rise"
-              ? "bg-rise text-rise-ink shadow-[0_2px_0_rgba(23,22,26,.14)]"
+              ? "bg-rise text-rise-ink shadow-[0_2px_0_var(--tag-shadow)]"
               : m === "cut"
-                ? "bg-cut text-cut-ink shadow-[0_2px_0_rgba(23,22,26,.14)]"
+                ? "bg-cut text-cut-ink shadow-[0_2px_0_var(--tag-shadow)]"
                 : m === "first" || m === "free"
-                  ? "bg-ink text-ground shadow-[0_2px_0_rgba(23,22,26,.14)]"
+                  ? "bg-ink text-ground shadow-[0_2px_0_var(--tag-shadow)]"
                   : "border border-rule bg-board text-ink";
           const delta =
             m === "free"
