@@ -119,6 +119,48 @@ export function longestHold(p: Plan) {
   return best;
 }
 
+/** Consecutive captures at the SAME price, collapsed into one run.
+ *
+ *  A rail was drawing ten identical "$12 held" boxes across five years, which
+ *  is ten times the ink for one fact. One box per run says it once and the
+ *  drop lines show how many captures stand behind it.
+ *
+ *  A run breaks on the same gap rule the hold claim uses: captures either side
+ *  of a five-year hole are not one continuous run, because nobody can see what
+ *  the price did in between. */
+export type Run = {
+  /** every capture in the run, in order — each keeps its own snapshot link */
+  points: Point[];
+  price: number;
+  /** what happened at the START of the run, relative to the price before it */
+  move: Move;
+  /** the price immediately before this run, for the percentage */
+  prev: number | null;
+};
+
+export function runs(points: Point[]): Run[] {
+  const moves = classify(points);
+  const out: Run[] = [];
+  let i = 0;
+  while (i < points.length) {
+    let j = i;
+    while (
+      j + 1 < points.length &&
+      points[j + 1].price === points[i].price &&
+      daysBetween(points[j].date, points[j + 1].date) <= MAX_GAP_DAYS
+    )
+      j++;
+    out.push({
+      points: points.slice(i, j + 1),
+      price: points[i].price,
+      move: moves[i],
+      prev: i > 0 ? points[i - 1].price : null,
+    });
+    i = j + 1;
+  }
+  return out;
+}
+
 /** The date of the most recent RISE. A cut is not a rise, and a rename is not
  *  a rise. Null means this plan has never raised its published price. */
 export function lastRise(p: Plan): string | null {

@@ -15,6 +15,7 @@ import {
   planHorizon,
   planEnds,
   headline,
+  runs,
 } from "@/lib/wall";
 
 /* Geometry, in px inside the rail. The wire lives in a band at the top; the
@@ -39,13 +40,25 @@ function Rail({ s, plan }: { s: Series; plan: Plan }) {
   const fy = (v: number) =>
     yhi === ylo ? (TOP + BOT) / 2 : BOT - ((v - ylo) / (yhi - ylo)) * (BOT - TOP);
 
+  /* One box per RUN of identical prices, not one per capture. Ten identical
+     "$12 held" boxes across five years is ten times the ink for one fact; the
+     drop lines still show every capture that stands behind the box. */
+  const rs = runs(pts);
+  const runX = rs.map((r) => {
+    const a = fx(r.points[0].date);
+    const b = fx(r.points[r.points.length - 1].date);
+    return (a + b) / 2;
+  });
   const last = [-99, -99, -99];
-  const rows = pts.map((p) => {
-    const x = fx(p.date);
+  const rows = runX.map((x) => {
     const r = [0, 1, 2].find((k) => x - last[k] >= GAP) ?? 0;
     last[r] = x;
     return r;
   });
+  const rowOfPoint = new Map<string, number>();
+  rs.forEach((r, i) => r.points.forEach((pt) => rowOfPoint.set(pt.date, rows[i])));
+  const xOfRun = new Map<string, number>();
+  rs.forEach((r, i) => r.points.forEach((pt) => xOfRun.set(pt.date, runX[i])));
   const H = TAGY + (Math.max(...rows) + 1) * ROWH + 8;
 
   let d = `M ${fx(pts[0].date).toFixed(2)} ${fy(pts[0].price).toFixed(2)}`;
@@ -96,19 +109,25 @@ function Rail({ s, plan }: { s: Series; plan: Plan }) {
             strokeLinejoin="round"
             vectorEffect="non-scaling-stroke"
           />
-          {pts.map((p, i) => (
-            <line
-              key={p.date}
-              x1={fx(p.date).toFixed(2)}
-              y1={fy(p.price)}
-              x2={fx(p.date).toFixed(2)}
-              y2={TAGY + rows[i] * ROWH - 2}
-              stroke="var(--color-wire)"
-              strokeWidth="1"
-              strokeDasharray="2 3"
-              vectorEffect="non-scaling-stroke"
-            />
-          ))}
+          {pts.map((p) => {
+            const row = rowOfPoint.get(p.date)!;
+            const yEnd = TAGY + row * ROWH - 2;
+            const xEnd = xOfRun.get(p.date)!;
+            /* straight down out of the node, then angled in to the shared box,
+               so several captures visibly converge on one price */
+            const bend = yEnd - 16;
+            return (
+              <polyline
+                key={p.date}
+                points={`${fx(p.date).toFixed(2)},${fy(p.price)} ${fx(p.date).toFixed(2)},${bend} ${xEnd.toFixed(2)},${yEnd}`}
+                fill="none"
+                stroke="var(--color-wire)"
+                strokeWidth="1"
+                strokeDasharray="2 3"
+                vectorEffect="non-scaling-stroke"
+              />
+            );
+          })}
         </svg>
 
         {/* nodes and the value printed above the line — drawn in HTML because
@@ -141,10 +160,12 @@ function Rail({ s, plan }: { s: Series; plan: Plan }) {
           );
         })}
 
-        {/* the tags, hanging below */}
-        {pts.map((p, i) => {
-          const m = moves[i];
-          const prev = pts[i - 1]?.price;
+        {/* one box per run of identical prices, not one per capture */}
+        {rs.map((r, i) => {
+          const first = r.points[0];
+          const lastPt = r.points[r.points.length - 1];
+          const many = r.points.length > 1;
+          const m = r.move;
           const skin =
             m === "rise"
               ? "bg-rise text-rise-ink shadow-[0_2px_0_rgba(23,22,26,.14)]"
@@ -152,7 +173,7 @@ function Rail({ s, plan }: { s: Series; plan: Plan }) {
                 ? "bg-cut text-cut-ink shadow-[0_2px_0_rgba(23,22,26,.14)]"
                 : m === "first" || m === "free"
                   ? "bg-ink text-ground shadow-[0_2px_0_rgba(23,22,26,.14)]"
-                  : "w-[68px] border border-rule bg-board text-ink";
+                  : "border border-rule bg-board text-ink";
           const delta =
             m === "free"
               ? "free"
@@ -160,31 +181,38 @@ function Rail({ s, plan }: { s: Series; plan: Plan }) {
                 ? "first price"
                 : m === "hold"
                   ? "held"
-                  : pct(prev!, p.price);
-          const dd = new Date(p.date);
+                  : pct(r.prev!, r.price);
+          const mon = (d: string) =>
+            `${new Date(d).toLocaleString("en", { month: "short", timeZone: "UTC" }).toUpperCase()} ${d.slice(0, 4)}`;
+          const when = many ? `${mon(first.date)} — ${mon(lastPt.date)}` : mon(first.date);
           return (
             <a
-              key={p.date}
-              href={snapshotUrl(s, p.ts)}
+              key={first.date}
+              href={snapshotUrl(s, first.ts)}
               target="_blank"
               rel="noopener"
-              title={p.note ?? `archived ${p.date}`}
-              className={`absolute block w-[104px] rounded-sm px-2.5 pb-2 pt-2.5 no-underline transition-transform hover:-translate-y-[3px] focus-visible:-translate-y-[3px] ${skin}`}
-              style={{ ...clamp(fx(p.date)), top: TAGY + rows[i] * ROWH }}
+              title={
+                many
+                  ? `${r.points.length} archived captures at this price, ${first.date} to ${lastPt.date}. Opens the first.`
+                  : (first.note ?? `archived ${first.date}`)
+              }
+              className={`absolute block rounded-sm px-2.5 pb-2 pt-2.5 no-underline transition-transform hover:-translate-y-[3px] focus-visible:-translate-y-[3px] ${many ? "w-[168px]" : "w-[112px]"} ${skin}`}
+              style={{ ...clamp(runX[i]), top: TAGY + rows[i] * ROWH }}
             >
               <span className="absolute right-2 top-[7px] h-[7px] w-[7px] rounded-full bg-current opacity-30" />
               <span className="block font-mono text-[9.5px] uppercase tracking-[.11em] opacity-75">
-                {dd.toLocaleString("en", { month: "short", timeZone: "UTC" })} {p.date.slice(0, 4)}
+                {when}
               </span>
-              <span
-                className={`block font-display tabular-nums leading-none ${
-                  m === "hold" ? "text-[22px] font-bold opacity-50" : "text-[29px] font-black"
-                }`}
-              >
-                {p.price === 0 ? "$0" : `$${p.price}`}
+              <span className="block font-display text-[29px] font-black leading-none tabular-nums">
+                {r.price === 0 ? "$0" : `$${r.price}`}
               </span>
-              <span className="mt-0.5 block font-mono text-[9.5px] font-semibold tracking-[.04em]">
-                {delta}
+              <span className="mt-0.5 flex items-baseline gap-1.5 font-mono text-[9.5px] font-semibold tracking-[.04em]">
+                <span>{delta}</span>
+                {many && (
+                  <span className="font-normal opacity-70">
+                    · {r.points.length} captures · {span(first.date, lastPt.date)}
+                  </span>
+                )}
               </span>
             </a>
           );

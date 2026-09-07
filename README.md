@@ -11,8 +11,15 @@ Live at **pricinghistory.onedaybuilt.com**. Day 6 of
 
 Each tool is one exhibit, with **one line per plan**. The wire's height is the
 price, so a long flat wire is a price that held and a step is the day it moved.
-The value is printed above the wire; a price tag hangs below it. Every tag links
-to the exact archived page the number was read from.
+The value is printed above the wire. Below it, a run of identical prices
+collapses into a SINGLE box — ten boxes each reading "$12 held" is ten times the
+ink for one fact — and a dashed line drops from every capture in the run to
+converge on that one box. The box says the price, the span, and how many
+archived captures stand behind it, and it opens the first of them.
+
+A run breaks on the same gap rule the hold claim uses: captures either side of a
+five-year hole are not one continuous run, because nobody can see what the price
+did in between.
 
 A plan keeps one line across a rename where it is plainly the same slot in the
 lineup — Linear's Standard became Basic, Notion's Team became Plus. It does not
