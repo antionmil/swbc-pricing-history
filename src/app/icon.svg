@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+  <!-- The site's own idea at tab size: a price that holds flat, then steps up.
+       Everything here is sized for 16px, not for the 64px preview — one corner,
+       a heavy stroke, and the marker dot large enough to survive the downscale.
+       Anything finer turns to mush in a browser tab. -->
+  <rect width="64" height="64" rx="12" fill="#17161A"/>
+  <path d="M8 45 H31 V23 H45"
+        fill="none" stroke="#F6F5F3" stroke-width="9"
+        stroke-linecap="round" stroke-linejoin="round"/>
+  <circle cx="47" cy="23" r="9.5" fill="#E8623C"/>
+</svg>
