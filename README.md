@@ -1,8 +1,8 @@
 # What software used to cost
 
-A museum of software prices. Every price Figma, Vercel, Linear, Notion and
-Stripe ever published, read off the Internet Archive and hung on the line that
-price drew.
+A museum of software prices. Every price 27 tools ever published — the ones you
+expense at work and the ones you pay for yourself — read off the Internet
+Archive and hung on the line that price drew.
 
 Live at **pricinghistory.onedaybuilt.com**. Day 6 of
 [onedaybuilt.com](https://onedaybuilt.com) — one website a day, built in public.
@@ -26,6 +26,11 @@ lineup — Linear's Standard became Basic, Notion's Team became Plus. It does no
 keep one line across a plan that merely shares a word: ZEIT sold a $15 "Premium"
 tier that is not the ancestor of today's Vercel Pro, and folding it in reported
 Pro as $15 in 2017 when the page said $50.
+
+The wall filters into **tools you expense** (19) and **subscriptions you pay for
+yourself** (7) — Netflix, Spotify, Disney+, Amazon Prime, Audible, HBO Max and
+Paramount+. Disney+ carries the steepest rise in the whole corpus: $6.99 to
+$18.99 in five years, +172%.
 
 Exhibits can be ordered three ways, and two of them flip when you click the
 active one again:
@@ -53,7 +58,7 @@ years it actually covers (520px to 1720px).
 
 ## Architecture
 
-**No LLM and no cron.** The corpus is 276 numbers across 35 plan lines and ships in the bundle as a
+**No LLM and no cron.** The corpus is 341 numbers across 51 plan lines and ships in the bundle as a
 TypeScript module, so the wall is one static file with no request-time work and
 no cold start.
 

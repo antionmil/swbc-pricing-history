@@ -296,11 +296,16 @@ export function totalChange(s: Series): number | null {
 }
 
 export type SortKey = "record" | "price" | "change";
+export type Audience = "all" | "work" | "consumer";
+
+export function audienceOf(s: Series): "work" | "consumer" {
+  return s.audience ?? "work";
+}
 
 /** Every order the wall offers. `record` is the default and has no direction:
  *  a worse-evidenced exhibit is never what someone is looking for. */
-export function order(key: SortKey, desc: boolean): Series[] {
-  const list = [...SEAT];
+export function order(key: SortKey, desc: boolean, who: Audience = "all"): Series[] {
+  const list = SEAT.filter((s) => who === "all" || audienceOf(s) === who);
   if (key === "record") return list.sort((a, b) => quality(b) - quality(a) || a.tool.localeCompare(b.tool));
   const val = key === "price" ? entryPrice : (s: Series) => totalChange(s) ?? 0;
   return list.sort((a, b) => {

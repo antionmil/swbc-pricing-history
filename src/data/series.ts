@@ -39,6 +39,9 @@ export type Plan = {
 
 export type Series = {
   tool: string;
+  /** who pays for it. Defaults to "work" — the tools this crowd expenses.
+   *  "consumer" is the subscription you pay for out of your own pocket. */
+  audience?: "work" | "consumer";
   /** the live pricing page today */
   site: string;
   /** the URL as archived; some tools changed domain (Vercel was ZEIT) */
@@ -647,6 +650,214 @@ export const SEAT: Series[] = [
         points: [
           { date: "2024-01-05", price: 39, ts: "20240105063228", note: "the first per-seat price" },
           { date: "2025-01-15", price: 29, ts: "20250115225154", note: "a 26% cut" },
+        ],
+      },
+    ],
+  },
+  {
+    tool: "Netflix",
+    site: "https://help.netflix.com/en/node/24926",
+    origin: "https://help.netflix.com/en/node/24926",
+    note: "Netflix's plan-price page holds no readable price before 2022 or in 2026 — those captures render the table in the browser. What is here is the US list price exactly as the page printed it.",
+    audience: "consumer",
+    plans: [
+      {
+        name: "Standard",
+        points: [
+          { date: "2022-01-13", price: 13.99, ts: "20220113061514" },
+          { date: "2023-01-02", price: 15.49, ts: "20230102112116", note: "the ad-free Standard tier rises to $15.49 and stays" },
+          { date: "2024-01-01", price: 15.49, ts: "20240101174444" },
+          { date: "2025-01-01", price: 15.49, ts: "20250101003755" },
+        ],
+      },
+      {
+        name: "Premium",
+        points: [
+          { date: "2022-01-13", price: 17.99, ts: "20220113061514" },
+          { date: "2023-01-02", price: 19.99, ts: "20230102112116" },
+          { date: "2024-01-01", price: 22.99, ts: "20240101174444", note: "a second rise in two years" },
+          { date: "2025-01-01", price: 22.99, ts: "20250101003755" },
+        ],
+      },
+      {
+        name: "With ads",
+        points: [
+          { date: "2023-01-02", price: 6.99, ts: "20230102112116", note: "the ad-supported tier appears at $6.99" },
+          { date: "2024-01-01", price: 6.99, ts: "20240101174444" },
+          { date: "2025-01-01", price: 6.99, ts: "20250101003755" },
+        ],
+      },
+    ],
+  },
+  {
+    tool: "Spotify",
+    site: "https://www.spotify.com/us/premium/",
+    origin: "https://www.spotify.com/us/premium/",
+    note: "The 2014 and 2015 captures hold no readable price.",
+    audience: "consumer",
+    plans: [
+      {
+        name: "Premium Individual",
+        points: [
+          { date: "2016-01-18", price: 9.99, ts: "20160118065844" },
+          { date: "2017-01-26", price: 9.99, ts: "20170126091842" },
+          { date: "2018-01-01", price: 9.99, ts: "20180101234333" },
+          { date: "2019-02-05", price: 9.99, ts: "20190205035311" },
+          { date: "2020-01-01", price: 9.99, ts: "20200101231318" },
+          { date: "2021-01-01", price: 9.99, ts: "20210101091933" },
+          { date: "2022-01-01", price: 9.99, ts: "20220101162340" },
+          { date: "2023-01-01", price: 9.99, ts: "20230101025050" },
+          { date: "2024-01-01", price: 10.99, ts: "20240101180833", note: "the first rise in eight years" },
+          { date: "2025-01-01", price: 11.99, ts: "20250101014524", note: "and a second, twelve months later" },
+          { date: "2026-01-02", price: 11.99, ts: "20260102055634" },
+        ],
+      },
+      {
+        name: "Premium Duo",
+        points: [
+          { date: "2025-01-01", price: 16.99, ts: "20250101014524" },
+          { date: "2026-01-02", price: 16.99, ts: "20260102055634" },
+        ],
+      },
+      {
+        name: "Premium Family",
+        points: [
+          { date: "2020-01-01", price: 14.99, ts: "20200101231318" },
+          { date: "2026-01-02", price: 19.99, ts: "20260102055634" },
+        ],
+      },
+    ],
+  },
+  {
+    tool: "Disney+",
+    site: "https://www.disneyplus.com",
+    origin: "https://www.disneyplus.com",
+    note: "The 2019 and 2020 captures print only the three-service bundle price, not the standalone monthly, so Disney+ starts here in 2021 rather than at its 2019 launch.",
+    audience: "consumer",
+    plans: [
+      {
+        name: "Premium, no ads",
+        points: [
+          { date: "2021-01-01", price: 6.99, ts: "20210101013040", note: "the original launch price" },
+          { date: "2022-01-01", price: 7.99, ts: "20220101005959" },
+          { date: "2023-01-01", price: 10.99, ts: "20230101004344" },
+          { date: "2024-01-01", price: 13.99, ts: "20240101010634" },
+          { date: "2025-01-01", price: 15.99, ts: "20250101000308" },
+          { date: "2026-01-01", price: 18.99, ts: "20260101005244", note: "the fifth rise in five years" },
+        ],
+      },
+      {
+        name: "Basic, with ads",
+        points: [
+          { date: "2023-01-01", price: 7.99, ts: "20230101004344", note: "the ad-supported tier appears" },
+          { date: "2024-01-01", price: 7.99, ts: "20240101010634" },
+          { date: "2025-01-01", price: 9.99, ts: "20250101000308" },
+          { date: "2026-01-01", price: 11.99, ts: "20260101005244" },
+        ],
+      },
+    ],
+  },
+  {
+    tool: "Amazon Prime",
+    site: "https://www.amazon.com/amazonprime",
+    origin: "https://www.amazon.com/amazonprime",
+    note: "The 2025 capture holds no readable price.",
+    audience: "consumer",
+    plans: [
+      {
+        name: "Prime monthly",
+        points: [
+          { date: "2018-06-16", price: 12.99, ts: "20180616050145" },
+          { date: "2019-01-05", price: 12.99, ts: "20190105025307" },
+          { date: "2020-01-07", price: 12.99, ts: "20200107104741" },
+          { date: "2021-01-05", price: 12.99, ts: "20210105181333" },
+          { date: "2022-01-01", price: 12.99, ts: "20220101013904" },
+          { date: "2023-01-01", price: 14.99, ts: "20230101013726", note: "the first rise in the record, after five years at $12.99" },
+          { date: "2024-01-01", price: 14.99, ts: "20240101030959" },
+          { date: "2026-01-03", price: 14.99, ts: "20260103072517" },
+        ],
+      },
+      {
+        name: "Prime annual",
+        points: [
+          { date: "2022-01-01", price: 119, ts: "20220101013904" },
+          { date: "2023-01-01", price: 139, ts: "20230101013726" },
+          { date: "2024-01-01", price: 139, ts: "20240101030959" },
+          { date: "2026-01-03", price: 139, ts: "20260103072517" },
+        ],
+      },
+    ],
+  },
+  {
+    tool: "Audible",
+    site: "https://www.audible.com/ep/memberbenefits",
+    origin: "https://www.audible.com/ep/memberbenefits",
+    note: "The 2018 to 2020 captures hold no readable price, and the 2026 capture was crawled as a Spanish page — it still prints US dollars, but that is why its wording differs.",
+    audience: "consumer",
+    plans: [
+      {
+        name: "Premium Plus, 1 credit",
+        points: [
+          { date: "2021-01-01", price: 14.95, ts: "20210101013408" },
+          { date: "2025-01-16", price: 14.95, ts: "20250116040606" },
+          { date: "2026-01-01", price: 14.95, ts: "20260101023317" },
+        ],
+      },
+      {
+        name: "Premium Plus, 2 credits",
+        points: [
+          { date: "2022-01-25", price: 22.95, ts: "20220125151949" },
+          { date: "2023-01-06", price: 22.95, ts: "20230106030824" },
+          { date: "2024-01-10", price: 22.95, ts: "20240110091019" },
+        ],
+      },
+    ],
+  },
+  {
+    tool: "HBO Max",
+    site: "https://www.hbomax.com",
+    origin: "https://www.hbomax.com",
+    note: "The 2020 capture holds no readable price, the 2023 capture prints only the ad-supported tier, and the 2025 capture says 'plans start at' without naming which plan — none of those are plotted rather than guessed.",
+    audience: "consumer",
+    plans: [
+      {
+        name: "Ad-free",
+        points: [
+          { date: "2021-01-01", price: 14.99, ts: "20210101020707" },
+          { date: "2022-01-01", price: 14.99, ts: "20220101004941" },
+          { date: "2024-02-07", price: 15.99, ts: "20240207092110" },
+        ],
+      },
+      {
+        name: "With ads",
+        points: [
+          { date: "2022-01-01", price: 9.99, ts: "20220101004941" },
+          { date: "2023-01-01", price: 9.99, ts: "20230101022943" },
+          { date: "2024-02-07", price: 9.99, ts: "20240207092110" },
+        ],
+      },
+    ],
+  },
+  {
+    tool: "Paramount+",
+    site: "https://www.paramountplus.com",
+    origin: "https://www.paramountplus.com",
+    note: "The 2022 and 2023 captures hold no readable price.",
+    audience: "consumer",
+    plans: [
+      {
+        name: "Essential",
+        points: [
+          { date: "2024-01-01", price: 5.99, ts: "20240101030956" },
+          { date: "2025-01-01", price: 7.99, ts: "20250101033927", note: "a third added in one year" },
+        ],
+      },
+      {
+        name: "With SHOWTIME",
+        points: [
+          { date: "2024-01-01", price: 11.99, ts: "20240101030956" },
+          { date: "2025-01-01", price: 12.99, ts: "20250101033927" },
+          { date: "2026-01-01", price: 12.99, ts: "20260101015432" },
         ],
       },
     ],

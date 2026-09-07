@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { SEAT } from "@/data/series";
 import { Exhibit } from "@/components/Exhibit";
-import { order, entryPrice, totalChange, type SortKey } from "@/lib/wall";
+import { order, entryPrice, totalChange, audienceOf, type SortKey, type Audience } from "@/lib/wall";
 
 /* Three orders, and two of them flip.
  *
@@ -20,16 +20,55 @@ const KEYS: { key: SortKey; label: string; up: string; down: string }[] = [
 const pctLabel = (n: number | null) =>
   n === null ? "—" : `${n > 0 ? "+" : n < 0 ? "−" : ""}${Math.abs(Math.round(n * 100))}%`;
 
+const WHO: { key: Audience; label: string }[] = [
+  { key: "all", label: "Everything" },
+  { key: "work", label: "Tools you expense" },
+  { key: "consumer", label: "Subscriptions you pay for" },
+];
+
 export function Wall() {
   const [key, setKey] = useState<SortKey>("record");
   const [desc, setDesc] = useState(true);
+  const [who, setWho] = useState<Audience>("all");
 
-  const tools = order(key, desc);
+  const tools = order(key, desc, who);
+  const counts = {
+    all: SEAT.length,
+    work: SEAT.filter((s) => audienceOf(s) === "work").length,
+    consumer: SEAT.filter((s) => audienceOf(s) === "consumer").length,
+  };
   const active = KEYS.find((k) => k.key === key)!;
 
   return (
     <>
       <div className="mt-7 rounded-md border border-rule bg-board px-4 py-3">
+        <div className="mb-2.5 flex flex-wrap items-center gap-x-2 gap-y-2">
+          <span className="mr-1 font-mono text-[10px] uppercase tracking-[.14em] text-muted">
+            Show
+          </span>
+          {WHO.map((a) => {
+            const on = a.key === who;
+            return (
+              <button
+                key={a.key}
+                type="button"
+                aria-pressed={on}
+                onClick={() => setWho(a.key)}
+                className={`rounded-full border px-3 py-1 font-mono text-[11px] tracking-[.04em] transition-colors ${
+                  on
+                    ? "border-ink bg-ink text-ground"
+                    : "border-rule text-muted hover:border-ink hover:text-ink"
+                }`}
+              >
+                {a.label}
+                <span className={`ml-1.5 tabular-nums ${on ? "opacity-70" : "opacity-60"}`}>
+                  {counts[a.key]}
+                </span>
+              </button>
+            );
+          })}
+        </div>
+
         <div className="flex flex-wrap items-center gap-x-2 gap-y-2">
           <span className="mr-1 font-mono text-[10px] uppercase tracking-[.14em] text-muted">
             Order by
