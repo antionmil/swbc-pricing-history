@@ -17,8 +17,14 @@ export function snapshotUrl(s: { origin: string }, ts: string): string {
  *  a run that is 11.6 months reads "12m", not "1y". */
 export function span(from: string, to: string): string {
   const days = (new Date(to).getTime() - new Date(from).getTime()) / 86_400_000;
-  const y = Math.floor(days / 365);
-  const m = Math.round((days % 365) / 30.44);
+  let y = Math.floor(days / 365);
+  let m = Math.round((days % 365) / 30.44);
+  // rounding can push months to 12, which must roll into a year rather than
+  // print "2y 12m"
+  if (m >= 12) {
+    y += 1;
+    m = 0;
+  }
   if (y && m) return `${y}y ${m}m`;
   if (y) return `${y}y`;
   return `${m}m`;
@@ -49,9 +55,45 @@ export function pct(from: number, to: number): string {
   return d > 0 ? `+${d}%` : `−${Math.abs(d)}%`;
 }
 
+/** A record is stale when its newest readable capture is well over a year old.
+ *  Zoom is the case that forced this: every capture from 2022 on is an empty
+ *  JavaScript shell, so its record stops in 2020. Measuring "held for" or
+ *  "never raised" against TODAY on a record like that invents six years of
+ *  evidence that does not exist, and would have ranked Zoom first on the wall. */
+const STALE_DAYS = 400;
+
+/** A run of identical prices only proves a hold if the captures are close
+ *  enough together to leave no room for a change in between. Captures are
+ *  yearly, so one missing year is tolerable; a five-year hole is not.
+ *  Slack forced this: it reads $6.67 in 2015-2020 and $7.25 in 2026, with no
+ *  readable capture between. Spanning that gap claimed an 11-year hold for a
+ *  price we cannot see for five of those years — and the plan was renamed in
+ *  the gap, so it is not even the same plan. */
+const MAX_GAP_DAYS = 800;
+
+function daysBetween(a: string, b: string): number {
+  return (new Date(b).getTime() - new Date(a).getTime()) / 86_400_000;
+}
+
+export function recordEnds(s: Series): string {
+  return s.points[s.points.length - 1].date;
+}
+
+export function isStale(s: Series): boolean {
+  const d = (new Date(AS_OF).getTime() - new Date(recordEnds(s)).getTime()) / 86_400_000;
+  return d > STALE_DAYS;
+}
+
+/** The horizon a claim about this tool may be measured to: today when the
+ *  record is current, otherwise the last capture that actually says something. */
+export function horizon(s: Series): string {
+  return isStale(s) ? recordEnds(s) : AS_OF;
+}
+
 /** The longest stretch at one price, measured to the day the price actually
  *  CHANGED — not to the last time we sampled it. Sampling to the last capture
- *  under-reports every hold, which is the whole point of the page. */
+ *  under-reports every hold, which is the whole point of the page. An open-ended
+ *  run ends at the horizon, so a stale record never claims to reach today. */
 export function longestHold(s: Series) {
   const pts = s.points;
   let best: { days: number; price: number; from: string; to: string; ongoing: boolean } | null = null;
@@ -62,12 +104,24 @@ export function longestHold(s: Series) {
       continue;
     }
     let j = i;
-    while (j + 1 < pts.length && pts[j + 1].price === pts[i].price) j++;
+    while (
+      j + 1 < pts.length &&
+      pts[j + 1].price === pts[i].price &&
+      daysBetween(pts[j].date, pts[j + 1].date) <= MAX_GAP_DAYS
+    )
+      j++;
     const next = pts.slice(j + 1).find((p) => p.price !== null);
-    const to = next ? next.date : AS_OF;
+    // If the next readable price is on the far side of a long gap, the run
+    // ends at the last capture that showed it, not at that distant point.
+    const to =
+      next && daysBetween(pts[j].date, next.date) <= MAX_GAP_DAYS
+        ? next.date
+        : next
+          ? pts[j].date
+          : horizon(s);
     const days = (new Date(to).getTime() - new Date(pts[i].date).getTime()) / 86_400_000;
     if (!best || days > best.days) {
-      best = { days, price: pts[i].price!, from: pts[i].date, to, ongoing: !next };
+      best = { days, price: pts[i].price!, from: pts[i].date, to, ongoing: !next && !isStale(s) };
     }
     i = j + 1;
   }
@@ -89,8 +143,12 @@ export function yearsSinceRise(s: Series): number {
   // Never raised ranks above everything that has. Use the length of the whole
   // published record so "never raised, but only listed last year" does not
   // outrank "never raised in nine years".
+  //
+  // Measured to the HORIZON, not to today. A record that stops in 2020 cannot
+  // earn credit for the six years since; otherwise the tool with the worst
+  // archive coverage wins the page, which is the opposite of the truth.
   const from = d ?? s.points[0].date;
-  return (new Date(AS_OF).getTime() - new Date(from).getTime()) / 86_400_000 / 365;
+  return (new Date(horizon(s)).getTime() - new Date(from).getTime()) / 86_400_000 / 365;
 }
 
 /** Sorted the way the page argues: longest since a rise at the top. Tools that
@@ -106,6 +164,6 @@ export function sorted(): Series[] {
 
 export function tickYears(): number[] {
   const out: number[] = [];
-  for (let y = 2016; y <= 2026; y += 2) out.push(y);
+  for (let y = 2016; y <= 2026; y += 1) out.push(y);
   return out;
 }

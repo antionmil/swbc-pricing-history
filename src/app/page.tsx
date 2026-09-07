@@ -84,12 +84,16 @@ export default function Page() {
       </header>
 
       <p className="mt-7 border-l-[3px] border-accent bg-board px-4 py-3 text-[13.5px] text-muted">
-        Ordered by <b className="font-semibold text-ink">how long since the price last rose</b>,
-        longest first.{" "}
+        Each rail opens on <b className="font-semibold text-ink">today</b> — scroll it left
+        to go back in time. Ordered by{" "}
+        <b className="font-semibold text-ink">how long since the price last rose</b>, longest
+        first.{" "}
         {never.length > 0 && (
           <>
-            {never.map((s) => s.tool).join(" and ")}{" "}
-            {never.length === 1 ? "has" : "have"} never raised this price at all, so{" "}
+            {never.length === 1
+              ? never[0].tool
+              : `${never.slice(0, -1).map((s) => s.tool).join(", ")} and ${never[never.length - 1].tool}`}{" "}
+            show no rise anywhere in their readable record, so{" "}
             {never.length === 1 ? "it sits" : "they sit"} at the top.
           </>
         )}

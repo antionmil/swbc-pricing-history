@@ -1,5 +1,5 @@
 import { type Series } from "@/data/series";
-import { fx, snapshotUrl, span, classify, pct, longestHold, lastRise, tickYears } from "@/lib/wall";
+import { fx, snapshotUrl, span, classify, pct, longestHold, lastRise, tickYears, isStale, horizon, recordEnds } from "@/lib/wall";
 
 /* Geometry, in px inside the board. The wire lives in a band at the top; the
    tags hang below it on up to three rows so neighbouring captures never
@@ -47,6 +47,9 @@ export function Exhibit({ s, rank }: { s: Series; rank: number }) {
 
   const hold = longestHold(s);
   const raised = lastRise(s);
+  const stale = isStale(s);
+  const upTo = horizon(s);
+  const endsIn = recordEnds(s).slice(0, 4);
 
   const clamp = (x: number): React.CSSProperties =>
     x < 5.5 ? { left: 0 } : x > 94.5 ? { right: 0 } : { left: `${x}%`, transform: "translateX(-50%)" };
@@ -66,26 +69,47 @@ export function Exhibit({ s, rank }: { s: Series; rank: number }) {
         <div className="max-w-[36ch] text-right text-sm text-muted">
           {raised === null ? (
             <p>
-              Has <b className="font-bold text-ink">never</b> raised this price in{" "}
-              <b className="font-bold text-ink">{span(pts[0].date, "2026-09-07")}</b> of published record.
+              <b className="font-bold text-ink">No rise</b> anywhere in{" "}
+              <b className="font-bold text-ink">{span(pts[0].date, upTo)}</b> of readable record
+              {stale ? <>, which ends in <b className="font-bold text-ink">{endsIn}</b>.</> : "."}
             </p>
           ) : (
             <p>
-              Last rise <b className="font-bold text-ink">{span(raised, "2026-09-07")}</b> ago.
+              {raised === recordEnds(s) ? (
+                <>
+                  Raised in <b className="font-bold text-ink">{raised.slice(0, 4)}</b>, the last
+                  readable capture — nothing after it to compare.
+                </>
+              ) : stale ? (
+                <>
+                  Last rise <b className="font-bold text-ink">{span(raised, upTo)}</b> before the
+                  record ends in <b className="font-bold text-ink">{endsIn}</b>.
+                </>
+              ) : (
+                <>
+                  Last rise <b className="font-bold text-ink">{span(raised, upTo)}</b> ago.
+                </>
+              )}
             </p>
           )}
           {hold && hold.days > 200 && (
             <p className="mt-0.5">
               Held at <b className="font-bold text-ink">${hold.price}</b> for{" "}
               <b className="font-bold text-ink">{span(hold.from, hold.to)}</b>
-              {hold.ongoing ? " and counting" : `, ${hold.from.slice(0, 4)} to ${hold.to.slice(0, 4)}`}.
+              {hold.ongoing
+                ? " and counting"
+                : `, ${hold.from.slice(0, 4)} to ${hold.to.slice(0, 4)}`}
+              .
             </p>
           )}
         </div>
       </div>
 
-      <div className="mt-4 overflow-x-auto rounded-sm border border-rule bg-board pt-5">
-        <div className="relative mx-6 min-w-[980px]" style={{ height: H }}>
+      <div
+        dir="rtl"
+        className="mt-4 overflow-x-auto rounded-sm border border-rule bg-board pt-5 [scrollbar-width:thin]"
+      >
+        <div dir="ltr" className="relative mx-6 w-[1680px]" style={{ height: H }}>
           {[...new Set([lo, hi])].map((v) => (
             <div key={v}>
               <div className="absolute inset-x-0 border-t border-dashed border-rule" style={{ top: fy(v) }} />
@@ -224,11 +248,40 @@ export function Exhibit({ s, rank }: { s: Series; rank: number }) {
             );
           })}
 
+          {stale && (
+            <>
+              <div
+                className="pointer-events-none absolute top-0 bottom-5 bg-ground/70"
+                style={{ left: `${fx(recordEnds(s))}%`, right: 0 }}
+                aria-hidden="true"
+              />
+              <span
+                className="absolute font-mono text-[9px] uppercase tracking-[.12em] text-muted"
+                style={{ left: `${fx(recordEnds(s))}%`, top: 22, marginLeft: 6 }}
+              >
+                no readable capture after {endsIn}
+              </span>
+            </>
+          )}
+
+          {/* today, at the right-hand edge — the point the rail opens on */}
+          <div
+            className="absolute top-0 bottom-5 border-l border-dashed border-accent"
+            style={{ left: `${fx("2026-09-07")}%` }}
+            aria-hidden="true"
+          />
+          <span
+            className="absolute font-mono text-[9px] uppercase tracking-[.14em] text-accent"
+            style={{ left: `${fx("2026-09-07")}%`, top: 4, transform: "translateX(-50%)" }}
+          >
+            now
+          </span>
+
           <div className="absolute inset-x-0 bottom-0 h-5">
             {tickYears().map((y) => (
               <span
                 key={y}
-                className="absolute font-mono text-[10px] text-muted"
+                className="absolute font-mono text-[10px] text-muted tabular-nums"
                 style={{ left: `${fx(`${y}-01-01`)}%`, transform: "translateX(-50%)" }}
               >
                 {y}
