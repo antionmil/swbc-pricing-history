@@ -29,6 +29,12 @@ export type Point = {
   ts: string;
   /** shown in the collapsed notes when it explains a step or a gap */
   note?: string;
+  /** Overrides the tool's `origin` for THIS capture. Needed when a tool changed
+   *  domain: Vercel's pre-April-2020 captures are of zeit.co/pricing, and
+   *  pointing them at vercel.com/pricing sent the reader to a page that never
+   *  carried those prices. Caught by re-fetching a sample and failing to find
+   *  the price we claim is on it. */
+  origin?: string;
 };
 
 export type Plan = {
@@ -262,12 +268,12 @@ export const SEAT: Series[] = [
       {
         name: "Hobby",
         points: [
-          { date: "2017-05-11", price: 0, ts: "20170511054635" },
-          { date: "2017-09-16", price: 0, ts: "20170916171911" },
-          { date: "2018-06-04", price: 0, ts: "20180604134907" },
-          { date: "2018-12-03", price: 0, ts: "20181203094940" },
-          { date: "2019-06-28", price: 0, ts: "20190628195630" },
-          { date: "2019-10-20", price: 0, ts: "20191020005226" },
+          { date: "2017-05-11", price: 0, ts: "20170511054635", origin: "https://zeit.co/pricing" },
+          { date: "2017-09-16", price: 0, ts: "20170916171911", origin: "https://zeit.co/pricing" },
+          { date: "2018-06-04", price: 0, ts: "20180604134907", origin: "https://zeit.co/pricing" },
+          { date: "2018-12-03", price: 0, ts: "20181203094940", origin: "https://zeit.co/pricing" },
+          { date: "2019-06-28", price: 0, ts: "20190628195630", origin: "https://zeit.co/pricing" },
+          { date: "2019-10-20", price: 0, ts: "20191020005226", origin: "https://zeit.co/pricing" },
           { date: "2020-04-22", price: 0, ts: "20200422121817" },
           { date: "2020-08-08", price: 0, ts: "20200808093240" },
           { date: "2021-01-21", price: 0, ts: "20210121022648" },
@@ -283,12 +289,12 @@ export const SEAT: Series[] = [
       {
         name: "Pro",
         points: [
-          { date: "2017-05-11", price: 50, ts: "20170511054635", note: "a flat monthly fee, not a seat" },
-          { date: "2017-09-16", price: 50, ts: "20170916171911" },
-          { date: "2018-06-04", price: 50, ts: "20180604134907" },
-          { date: "2018-12-03", price: 0.99, ts: "20181203094940", note: "Now 2.0 dropped the tiers for pure usage billing" },
-          { date: "2019-06-28", price: 0.99, ts: "20190628195630" },
-          { date: "2019-10-20", price: 20, ts: "20191020005226", note: "named tiers return at $20" },
+          { date: "2017-05-11", price: 50, ts: "20170511054635", origin: "https://zeit.co/pricing", note: "a flat monthly fee, not a seat" },
+          { date: "2017-09-16", price: 50, ts: "20170916171911", origin: "https://zeit.co/pricing" },
+          { date: "2018-06-04", price: 50, ts: "20180604134907", origin: "https://zeit.co/pricing" },
+          { date: "2018-12-03", price: 0.99, ts: "20181203094940", origin: "https://zeit.co/pricing", note: "Now 2.0 dropped the tiers for pure usage billing" },
+          { date: "2019-06-28", price: 0.99, ts: "20190628195630", origin: "https://zeit.co/pricing" },
+          { date: "2019-10-20", price: 20, ts: "20191020005226", origin: "https://zeit.co/pricing", note: "named tiers return at $20" },
           { date: "2020-04-22", price: 20, ts: "20200422121817" },
           { date: "2020-08-08", price: 20, ts: "20200808093240" },
           { date: "2021-01-21", price: 20, ts: "20210121022648" },

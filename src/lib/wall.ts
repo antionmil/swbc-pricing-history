@@ -57,8 +57,9 @@ export function ticksIn(d: { t0: number; t1: number }): number[] {
   return out;
 }
 
-export function snapshotUrl(s: { origin: string }, ts: string): string {
-  return `https://web.archive.org/web/${ts}/${s.origin}`;
+/** A capture's own origin wins over the tool's, for tools that changed domain. */
+export function snapshotUrl(s: { origin: string }, ts: string, pointOrigin?: string): string {
+  return `https://web.archive.org/web/${ts}/${pointOrigin ?? s.origin}`;
 }
 
 function daysBetween(a: string, b: string): number {
@@ -123,6 +124,16 @@ export function classify(points: Point[]): Move[] {
     prev = p.price;
     return m;
   });
+}
+
+/** A money value, formatted as money.
+ *
+ *  Slack Plus was $12.50 and rendered as "$12.5", because the number carries no
+ *  trailing zero and nothing was adding one. Whole dollars stay whole — "$12",
+ *  not "$12.00" — because that is how every one of these pages printed them. */
+export function money(n: number): string {
+  if (n === 0) return "$0";
+  return Number.isInteger(n) ? `$${n}` : `$${n.toFixed(2)}`;
 }
 
 export function pct(from: number, to: number): string {

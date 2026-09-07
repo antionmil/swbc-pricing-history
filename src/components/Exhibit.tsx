@@ -19,6 +19,7 @@ import {
   planEnds,
   headline,
   runs,
+  money,
 } from "@/lib/wall";
 
 /* Geometry, in px inside the rail. The wire lives in a band at the top; the
@@ -97,7 +98,7 @@ function Rail({ s, plan }: { s: Series; plan: Plan }) {
               className="absolute left-0 bg-board pr-2 font-mono text-[10px] text-muted"
               style={{ top: fy(v), transform: "translateY(-50%)" }}
             >
-              ${v}
+              {money(v)}
             </span>
           </div>
         ))}
@@ -165,7 +166,7 @@ function Rail({ s, plan }: { s: Series; plan: Plan }) {
               className={`pointer-events-none absolute whitespace-nowrap rounded-[2px] px-1.5 py-px font-mono text-xs tabular-nums ${cls}`}
               style={{ ...clampSm(X(p.date)), top: fy(p.price) - 24 }}
             >
-              {r.price === 0 ? "free" : `$${r.price}`}
+              {r.price === 0 ? "free" : money(r.price)}
             </span>
           );
         })}
@@ -198,7 +199,7 @@ function Rail({ s, plan }: { s: Series; plan: Plan }) {
           return (
             <a
               key={first.date}
-              href={snapshotUrl(s, first.ts)}
+              href={snapshotUrl(s, first.ts, first.origin)}
               target="_blank"
               rel="noopener"
               title={
@@ -214,7 +215,7 @@ function Rail({ s, plan }: { s: Series; plan: Plan }) {
                 {when}
               </span>
               <span className="block font-display text-[29px] font-black leading-none tabular-nums">
-                {r.price === 0 ? "$0" : `$${r.price}`}
+                {money(r.price)}
               </span>
               <span className="mt-0.5 flex items-baseline gap-1.5 font-mono text-[9.5px] font-semibold tracking-[.04em]">
                 <span>{delta}</span>
@@ -331,7 +332,7 @@ export function Exhibit({ s, rank }: { s: Series; rank: number }) {
           )}
           {hold && hold.days > 200 && !free && (
             <p className="mt-0.5">
-              Held at <b className="font-bold text-ink">${hold.price}</b> for{" "}
+              Held at <b className="font-bold text-ink">{money(hold.price)}</b> for{" "}
               <b className="font-bold text-ink">{span(hold.from, hold.to)}</b>
               {hold.ongoing
                 ? " and counting"
@@ -361,7 +362,7 @@ export function Exhibit({ s, rank }: { s: Series; rank: number }) {
               >
                 {p.name}
                 <span className={`ml-1.5 tabular-nums ${on ? "opacity-70" : "opacity-60"}`}>
-                  {newest.price === 0 ? "free" : `$${newest.price}`}
+                  {newest.price === 0 ? "free" : money(newest.price)}
                 </span>
               </button>
             );

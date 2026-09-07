@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { SEAT } from "@/data/series";
 import { Exhibit } from "@/components/Exhibit";
-import { order, entryPrice, totalChange, audienceOf, type SortKey, type Audience } from "@/lib/wall";
+import { order, entryPrice, totalChange, audienceOf, money, type SortKey, type Audience } from "@/lib/wall";
 
 /* Three orders, and two of them flip.
  *
@@ -131,7 +131,7 @@ export function Wall() {
             {tools.slice(0, 5).map((s, i) => (
               <li key={s.tool}>
                 <span className="text-ink">{s.tool}</span>{" "}
-                {key === "price" ? `$${entryPrice(s)}` : pctLabel(totalChange(s))}
+                {key === "price" ? money(entryPrice(s)) : pctLabel(totalChange(s))}
                 {i < 4 ? "" : " …"}
               </li>
             ))}
