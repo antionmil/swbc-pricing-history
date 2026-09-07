@@ -12,6 +12,7 @@
     "dev:webpack": "NODE_OPTIONS=--max-old-space-size=2048 next dev --webpack"
   },
   "dependencies": {
+    "@neondatabase/serverless": "^1.1.0",
     "@vercel/analytics": "^2.0.1",
     "next": "16.1.6",
     "react": "19.2.3",

@@ -1,12 +1,15 @@
 import { Exhibit } from "@/components/Exhibit";
 import { SponsorSlot } from "@/components/SponsorSlot";
 import { PERCENT } from "@/data/series";
-import { sorted, classify, span, lastRise } from "@/lib/wall";
+import { Here } from "@/components/Here";
+import { sorted, classify, lastRise, quality, isStale } from "@/lib/wall";
 
-/* Fully static. Every number ships in the bundle, so there is no database, no
-   cold start and no request-time work. `revalidate` with no dynamic segment
-   and no uncached fetch means this prerenders — read the mode column in the
-   build output and confirm it is ○, not ƒ. */
+/* The page itself is static: every price ships in the bundle, so there is no
+   cold start and no request-time work on the thing people came to read.
+   `revalidate` with no dynamic segment and no uncached fetch means this
+   prerenders — read the mode column in the build output and confirm / is ○.
+   The only database is the visitor counter, and it lives behind /api/here so a
+   slow or missing database can never delay or break the wall. */
 export const revalidate = 86400;
 
 export default function Page() {
@@ -20,7 +23,6 @@ export default function Page() {
     const m = classify(s.points);
     return s.points.map((p, i) => ({ s, p, m: m[i] })).filter((r) => r.m === "cut");
   });
-  const never = tools.filter((s) => lastRise(s) === null);
   // every point on this page IS one archived page, and each one is linked.
   // Do not quote the wider corpus here — the tile must count what is on screen.
   const linked =
@@ -29,7 +31,7 @@ export default function Page() {
   const toolCount = tools.length + PERCENT.length;
 
   return (
-    <main className="mx-auto max-w-[1180px] px-6 pb-24 pt-11">
+    <main className="mx-auto max-w-[840px] px-5 pb-24 pt-11 sm:px-6">
       <header className="border-b-2 border-ink pb-5">
         <p className="font-mono text-[11px] uppercase tracking-[.18em] text-muted">
           onedaybuilt · day 06
@@ -46,6 +48,8 @@ export default function Page() {
           <b className="font-semibold text-ink">web.archive.org</b> — every tag opens the
           page it came from.
         </p>
+
+        <Here />
 
         <dl className="mt-7 grid grid-cols-2 gap-x-8 gap-y-5 sm:grid-cols-4">
           {[
@@ -86,17 +90,9 @@ export default function Page() {
       <p className="mt-7 border-l-[3px] border-accent bg-board px-4 py-3 text-[13.5px] text-muted">
         Each rail opens on <b className="font-semibold text-ink">today</b> — scroll it left
         to go back in time. Ordered by{" "}
-        <b className="font-semibold text-ink">how long since the price last rose</b>, longest
-        first.{" "}
-        {never.length > 0 && (
-          <>
-            {never.length === 1
-              ? never[0].tool
-              : `${never.slice(0, -1).map((s) => s.tool).join(", ")} and ${never[never.length - 1].tool}`}{" "}
-            show no rise anywhere in their readable record, so{" "}
-            {never.length === 1 ? "it sits" : "they sit"} at the top.
-          </>
-        )}
+        <b className="font-semibold text-ink">how good the record is</b>: how many years the
+        archive caught, how densely, how recently, and whether the price ever moved. The
+        thinnest records sit at the bottom and say so.
       </p>
 
       {tools.map((s, i) => (

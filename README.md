@@ -14,14 +14,27 @@ a price that held and a step is the day it moved. The value is printed above the
 wire; a price tag hangs below it. Every tag links to the exact archived page the
 number was read from.
 
-Exhibits are ordered by **how long since the price last rose**, longest first.
-A tool that has never raised its price sorts above every tool that has.
+Exhibits are ordered by **how good the record is** — a score over how many
+years the archive caught, how densely, how recently, and whether the price ever
+moved. The strongest evidence leads; the thinnest records sit at the bottom and
+say so on the page.
+
+Each rail opens on **today** at its right-hand edge and scrolls left into the
+past, so the first thing you see is what the tool charges now.
 
 ## Architecture
 
-**There is no database, no LLM and no cron.** The whole corpus is 35 numbers.
-It ships in the bundle as a TypeScript module, so the page is one static file
-with no request-time work and no cold start.
+**No LLM and no cron.** The corpus is 125 numbers and ships in the bundle as a
+TypeScript module, so the wall is one static file with no request-time work and
+no cold start.
+
+There is exactly one database, and it does not touch the wall: a visitor counter
+behind `/api/here`, in its own Neon project (`pricing-history`, eu-central-1,
+paired with `fra1` functions). It stores a salted one-way hash of the visitor's
+IP, deletes the hash after five minutes, and keeps only a bare daily integer. It
+can say how many people are here; it cannot say who. If it is slow or missing,
+the page renders exactly the same and the counter simply does not appear —
+nothing is ever guessed.
 
 ```
 src/data/series.ts     the corpus — every point, with its Wayback timestamp
@@ -29,12 +42,15 @@ src/lib/wall.ts        the maths: x/y scales, hold spans, sort order
 src/components/Exhibit.tsx   one tool: wire, value chips, hanging tags
 src/app/page.tsx       the wall, plus the percentage-priced section
 src/app/api/og/route.tsx     the share image
+src/app/api/here/route.ts    the visitor counter
+src/components/Here.tsx      the activity row
+schema.sql                   the three counter tables
 ../prep/               how the data was gathered (see below)
 ../prep/prices.json    the full 222-row table, all plans, not just the headline
 ```
 
-`/` prerenders (`○` in the build output). `/api/og` is the only `ƒ`, which is
-what an image route should be.
+`/` prerenders (`○` in the build output). The two `ƒ` routes are `/api/og` and
+`/api/here`, which is what an image route and a counter should be.
 
 ## How the data was gathered
 
@@ -72,5 +88,6 @@ pnpm dev
 pnpm build   # read the route table; / must be ○, not ƒ
 ```
 
-No environment variables are required. The only optional ones are the sponsor
-slot — see `.env.example`.
+`DATABASE_URL` enables the visitor counter; without it the page renders
+identically and the counter is hidden. `CRON_SECRET` salts the visitor hash.
+The sponsor slot is optional — see `.env.example`.

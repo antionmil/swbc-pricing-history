@@ -1,5 +1,5 @@
 import { type Series } from "@/data/series";
-import { fx, snapshotUrl, span, classify, pct, longestHold, lastRise, tickYears, isStale, horizon, recordEnds } from "@/lib/wall";
+import { fx, snapshotUrl, span, classify, pct, longestHold, lastRise, tickYears, isStale, horizon, recordEnds, quality } from "@/lib/wall";
 
 /* Geometry, in px inside the board. The wire lives in a band at the top; the
    tags hang below it on up to three rows so neighbouring captures never
@@ -75,7 +75,12 @@ export function Exhibit({ s, rank }: { s: Series; rank: number }) {
             </p>
           ) : (
             <p>
-              {raised === recordEnds(s) ? (
+              {raised === recordEnds(s) && !stale ? (
+                <>
+                  Raised <b className="font-bold text-ink">{span(raised, upTo)}</b> ago, and that
+                  is the price today.
+                </>
+              ) : raised === recordEnds(s) ? (
                 <>
                   Raised in <b className="font-bold text-ink">{raised.slice(0, 4)}</b>, the last
                   readable capture — nothing after it to compare.
@@ -107,7 +112,7 @@ export function Exhibit({ s, rank }: { s: Series; rank: number }) {
 
       <div
         dir="rtl"
-        className="mt-4 overflow-x-auto rounded-sm border border-rule bg-board pt-5 [scrollbar-width:thin]"
+        className="mt-4 overflow-x-auto rounded-md border border-rule bg-board pt-5 [scrollbar-width:thin]"
       >
         <div dir="ltr" className="relative mx-6 w-[1680px]" style={{ height: H }}>
           {[...new Set([lo, hi])].map((v) => (
@@ -264,17 +269,18 @@ export function Exhibit({ s, rank }: { s: Series; rank: number }) {
             </>
           )}
 
-          {/* today, at the right-hand edge — the point the rail opens on */}
+          {/* Today IS the right-hand end of the rail, so the newest tag is the
+              price the vendor is charging right now — unless the record went
+              stale, in which case the greyed band above already says so. */}
           <div
-            className="absolute top-0 bottom-5 border-l border-dashed border-accent"
-            style={{ left: `${fx("2026-09-07")}%` }}
+            className="absolute top-0 bottom-5 right-0 border-l-2 border-accent"
             aria-hidden="true"
           />
           <span
-            className="absolute font-mono text-[9px] uppercase tracking-[.14em] text-accent"
-            style={{ left: `${fx("2026-09-07")}%`, top: 4, transform: "translateX(-50%)" }}
+            className="absolute right-0 font-mono text-[9px] uppercase tracking-[.14em] text-accent"
+            style={{ top: 4, marginRight: 4 }}
           >
-            now
+            {stale ? "today" : "today · price live now"}
           </span>
 
           <div className="absolute inset-x-0 bottom-0 h-5">
@@ -292,17 +298,29 @@ export function Exhibit({ s, rank }: { s: Series; rank: number }) {
       </div>
 
       {(s.note || pts.some((p) => p.note)) && (
-        <p className="mt-3.5 max-w-[76ch] text-[13px] leading-relaxed text-muted">
-          {s.note && <span className="text-ink">{s.note} </span>}
-          {pts
-            .filter((p) => p.note)
-            .map((p, i, arr) => (
-              <span key={p.date}>
-                <b className="font-semibold text-ink">{p.date.slice(0, 7)}</b> — {p.note}
-                {i < arr.length - 1 ? " · " : ""}
-              </span>
-            ))}
-        </p>
+        <details className="group mt-3">
+          <summary className="inline-flex cursor-pointer list-none items-center gap-1.5 font-mono text-[11px] uppercase tracking-[.12em] text-muted hover:text-ink [&::-webkit-details-marker]:hidden">
+            <span
+              aria-hidden="true"
+              className="inline-block transition-transform group-open:rotate-90"
+            >
+              ›
+            </span>
+            <span className="group-open:hidden">What happened here</span>
+            <span className="hidden group-open:inline">Hide</span>
+          </summary>
+          <p className="mt-2.5 max-w-[68ch] text-[13px] leading-relaxed text-muted">
+            {s.note && <span className="text-ink">{s.note} </span>}
+            {pts
+              .filter((p) => p.note)
+              .map((p, i, arr) => (
+                <span key={p.date}>
+                  <b className="font-semibold text-ink">{p.date.slice(0, 7)}</b> — {p.note}
+                  {i < arr.length - 1 ? " · " : ""}
+                </span>
+              ))}
+          </p>
+        </details>
       )}
     </section>
   );

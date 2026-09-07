@@ -1,58 +1,50 @@
 @import "tailwindcss";
 
-/* ONE file to change per site. Day 6 is a museum of software prices, so the
-   palette is archival board and paper, not the scaffold's teal.
+/* ONE file to change per site.
 
    CONTRAST — MEASURED, not estimated, and measured against the surface each
-   colour actually sits on. Every chip, tag and label on this site sits on
-   --color-board, never on --color-ground, so board is the number that counts.
-   Day 2 shipped three tokens measured against the page background with a
-   comment claiming they passed; all three failed where they were really used.
+   colour actually sits on. Chips, tags and labels sit on --color-board, never
+   on --color-ground, so board is the number that counts. Day 2 shipped three
+   tokens measured against the page background with a comment claiming they
+   passed; all three failed where they were really used.
 
-   Two values were changed BECAUSE of this measurement:
-     - rise was #E8623C. White-on-rise measured 3.09:1, which fails AA for the
-       12px price chip above the line (12px bold is not "large text"). Darkened
-       to #BF4318 -> 4.78:1.
-     - wire was #B3A896 / #4A4438. The wire IS the price line, so WCAG 1.4.11
-       wants 3:1 as essential graphics. Both measured under 2:1. Now 4.04:1
-       light and 3.67:1 dark.
+   The ground is white. --color-board is the faint panel behind each rail: a
+   near-white with a slight warm bias, chosen rather than a default grey, and
+   only 1.09:1 against the ground because it is a surface, not text.
 
-   light, text on board #EDE9E0:
-     ink     #1A1714  14.73:1  AAA
-     muted   #6E655A   4.72:1  AA
-     accent  #8A4326   5.95:1  AA
-     rise-ink #FFF3EC on rise #BF4318   4.78:1  AA
-     cut-ink  #E8F6F1 on cut  #1E6F63   5.38:1  AA
-     wire    #7D6F58   4.04:1  (graphics, needs 3:1)
-   light, text on ground #F5F3EE:
-     ink 16.10:1 AAA · muted 5.16:1 AA · accent 6.50:1 AA
+   light — text on board #F6F5F3 / on ground #FFFFFF:
+     ink      #17161A   16.53 / 18.01  AAA
+     muted    #5F5C66    6.01 /  6.54  AA
+     accent   #8A4326    6.62 /  7.21  AA
+     rise-ink #FFF3EC on rise #BF4318   4.78  AA
+     cut-ink  #E8F6F1 on cut  #1B6659   6.11  AA
+     wire     #8A8590    3.30 /  3.60   (the price line is essential graphics,
+                                         WCAG 1.4.11 wants 3:1)
+   dark — text on board #191920 / on ground #101014:
+     ink      #EFEEF2   15.14 / 16.44  AAA
+     muted    #9B98A4    6.18 /  6.71  AA
+     accent   #E39A76    7.62 /  8.27  AAA
+     rise-ink #20110B on rise #FF7B54   7.16  AAA
+     cut-ink  #0B1A16 on cut  #43C0A6   7.95  AAA
+     wire     #7C7A86    4.15 /  4.51
 
-   dark, text on board #1C1A16:
-     ink     #F0ECE3  14.74:1  AAA
-     muted   #9A9084   5.54:1  AA
-     accent  #E39A76   7.57:1  AAA
-     rise-ink #20110B on rise #FF7B54   7.16:1  AAA
-     cut-ink  #0B1A16 on cut  #43C0A6   7.95:1  AAA
-     wire    #7C7260   3.67:1  (graphics, needs 3:1)
-   dark, text on ground #141310:
-     ink 15.76:1 AAA · muted 5.92:1 AA · accent 8.09:1 AAA
-
-   --color-rule is decorative hairline only. It carries no text and no meaning
-   the wire does not already carry, so it is deliberately below 3:1.
-*/@theme {
-  --color-ground: #f5f3ee;
-  --color-board: #ede9e0;
+   --color-rule is a decorative hairline. It carries no text and no meaning the
+   wire does not already carry, so it is deliberately below 3:1.
+*/
+@theme {
+  --color-ground: #ffffff;
+  --color-board: #f6f5f3;
   --color-surface: #ffffff;
-  --color-ink: #1a1714;
-  --color-muted: #6e655a;
-  --color-rule: #dbd3c4;
+  --color-ink: #17161a;
+  --color-muted: #5f5c66;
+  --color-rule: #e3e1de;
 
   /* semantic, not accent: what the price did */
   --color-rise: #bf4318;
   --color-rise-ink: #fff3ec;
-  --color-cut: #1e6f63;
+  --color-cut: #1b6659;
   --color-cut-ink: #e8f6f1;
-  --color-wire: #7d6f58;
+  --color-wire: #8a8590;
 
   --color-accent: #8a4326;
   --color-accent-soft: #f0dfd6;
@@ -66,33 +58,33 @@
 
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme="light"]) {
-    --color-ground: #141310;
-    --color-board: #1c1a16;
-    --color-surface: #201d19;
-    --color-ink: #f0ece3;
-    --color-muted: #9a9084;
-    --color-rule: #332f27;
+    --color-ground: #101014;
+    --color-board: #191920;
+    --color-surface: #1e1e26;
+    --color-ink: #efeef2;
+    --color-muted: #9b98a4;
+    --color-rule: #2c2c36;
     --color-rise: #ff7b54;
     --color-rise-ink: #20110b;
     --color-cut: #43c0a6;
     --color-cut-ink: #0b1a16;
-    --color-wire: #7c7260;
+    --color-wire: #7c7a86;
     --color-accent: #e39a76;
     --color-accent-soft: #2a1a12;
   }
 }
 :root[data-theme="dark"] {
-  --color-ground: #141310;
-  --color-board: #1c1a16;
-  --color-surface: #201d19;
-  --color-ink: #f0ece3;
-  --color-muted: #9a9084;
-  --color-rule: #332f27;
+  --color-ground: #101014;
+  --color-board: #191920;
+  --color-surface: #1e1e26;
+  --color-ink: #efeef2;
+  --color-muted: #9b98a4;
+  --color-rule: #2c2c36;
   --color-rise: #ff7b54;
   --color-rise-ink: #20110b;
   --color-cut: #43c0a6;
   --color-cut-ink: #0b1a16;
-  --color-wire: #7c7260;
+  --color-wire: #7c7a86;
   --color-accent: #e39a76;
   --color-accent-soft: #2a1a12;
 }

@@ -1,7 +1,10 @@
 import { SEAT, AS_OF, type Series, type Point } from "@/data/series";
 
 export const T0 = new Date("2016-01-01").getTime();
-export const T1 = new Date("2026-10-01").getTime();
+/* The axis ends TODAY, not at a rounded year boundary. When it ran to
+   2026-10-01 the "now" marker sat to the RIGHT of the 2026 tick, which read as
+   though now were some time after 2026 — in 2026. Now is the right-hand edge. */
+export const T1 = new Date(AS_OF).getTime();
 const SPAN = T1 - T0;
 
 /** x position as a percentage of the decade the wall covers */
@@ -151,9 +154,47 @@ export function yearsSinceRise(s: Series): number {
   return (new Date(horizon(s)).getTime() - new Date(from).getTime()) / 86_400_000 / 365;
 }
 
-/** Sorted the way the page argues: longest since a rise at the top. Tools that
- *  have never raised sort above tools that have, by how long their record runs. */
+/** How good the record actually is, 0-100.
+ *
+ *  The wall leads with the exhibits worth looking at, and "worth looking at"
+ *  is not a matter of taste — it is how much of the tool's life the archive
+ *  actually caught, how densely, how recently, and whether the price ever did
+ *  anything. A ten-point line running to this year beats a two-point line that
+ *  stopped in 2022, and it should be ordered that way without anyone deciding.
+ *
+ *  Four parts, each capped so no single one can carry a weak record:
+ *    reach     how many years the record spans          up to 30
+ *    density   captures per year of that span           up to 25
+ *    currency  how recent the last readable capture is  up to 30
+ *    movement  whether the price ever changed           up to 15
+ */
+export function quality(s: Series): number {
+  const first = new Date(s.points[0].date).getTime();
+  const last = new Date(recordEnds(s)).getTime();
+  const years = (last - first) / 86_400_000 / 365;
+
+  const reach = Math.min(30, (years / 10) * 30);
+
+  const perYear = s.points.length / Math.max(1, years);
+  const density = Math.min(25, (perYear / 1.1) * 25);
+
+  const staleYears = (new Date(AS_OF).getTime() - last) / 86_400_000 / 365;
+  const currency = Math.max(0, 30 - staleYears * 12);
+
+  const moves = classify(s.points).filter((m) => m === "rise" || m === "cut").length;
+  const movement = Math.min(15, moves * 7.5);
+
+  return Math.round(reach + density + currency + movement);
+}
+
+/** Default order: the best-evidenced exhibits first. */
 export function sorted(): Series[] {
+  return [...SEAT].sort((a, b) => quality(b) - quality(a) || a.tool.localeCompare(b.tool));
+}
+
+/** The other order the page could argue from, kept because it is the one the
+ *  headline stat uses. Not the default any more. */
+export function byYearsSinceRise(): Series[] {
   return [...SEAT].sort((a, b) => {
     const an = lastRise(a) === null ? 1 : 0;
     const bn = lastRise(b) === null ? 1 : 0;
@@ -164,6 +205,14 @@ export function sorted(): Series[] {
 
 export function tickYears(): number[] {
   const out: number[] = [];
-  for (let y = 2016; y <= 2026; y += 1) out.push(y);
+  // 2026 is dropped: the rail already ends on a "now" label sitting in 2026,
+  // and a 2026 tick eight months to its left reads as two different nows.
+  for (let y = 2016; y <= 2025; y += 1) out.push(y);
   return out;
+}
+
+/** True when this tool's newest capture is recent enough that the price on it
+ *  is what the vendor is charging today. */
+export function isCurrent(s: Series): boolean {
+  return !isStale(s);
 }
