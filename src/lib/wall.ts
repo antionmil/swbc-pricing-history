@@ -9,9 +9,52 @@ export const T1 = new Date(AS_OF).getTime();
 const SPAN = T1 - T0;
 const DAY = 86_400_000;
 
-/** x position as a percentage of the decade the wall covers */
+/** x position as a percentage of the decade the wall covers.
+ *  Kept for the hero and anything that wants the shared decade. */
 export function fx(date: string): number {
   return ((new Date(date).getTime() - T0) / SPAN) * 100;
+}
+
+/** Each rail spans only ITS OWN record.
+ *
+ *  Every rail used to start at 2016 whatever the tool. Notion's first readable
+ *  capture is April 2021, so its rail opened on five blank years with ticks and
+ *  gridlines and nothing on them, which reads as missing data rather than as a
+ *  record that simply starts later.
+ *
+ *  The right edge stays TODAY for every tool, so "scroll left to go back" and
+ *  the live-price edge behave the same everywhere. Only the left edge moves. */
+export function domain(p: Plan): { t0: number; t1: number; years: number } {
+  const first = new Date(p.points[0].date).getTime();
+  // a little air before the first capture so its box is not flush to the edge
+  const t0 = first - 150 * DAY;
+  const t1 = new Date(AS_OF).getTime();
+  return { t0, t1, years: (t1 - t0) / DAY / 365 };
+}
+
+export function fxIn(date: string, d: { t0: number; t1: number }): number {
+  return ((new Date(date).getTime() - d.t0) / (d.t1 - d.t0)) * 100;
+}
+
+/** Rail width in px: enough room per year to read, and never so wide that a
+ *  two-year record is stretched across a screen and a half. */
+export function railWidth(d: { years: number }): number {
+  return Math.round(Math.min(1720, Math.max(520, d.years * 152)));
+}
+
+/** Only the year ticks that fall inside this rail's own domain. */
+export function ticksIn(d: { t0: number; t1: number }): number[] {
+  const y0 = new Date(d.t0).getUTCFullYear();
+  const y1 = new Date(d.t1).getUTCFullYear();
+  const out: number[] = [];
+  for (let y = y0; y <= y1; y++) {
+    const t = new Date(`${y}-01-01`).getTime();
+    // drop a tick that would sit within 3% of either edge, where it collides
+    // with the first box or with the "today" marker
+    const k = (t - d.t0) / (d.t1 - d.t0);
+    if (k >= 0.03 && k <= 0.94) out.push(y);
+  }
+  return out;
 }
 
 export function snapshotUrl(s: { origin: string }, ts: string): string {

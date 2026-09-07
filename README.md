@@ -35,6 +35,13 @@ say so on the page.
 Each rail opens on **today** at its right-hand edge and scrolls left into the
 past, so the first thing you see is what the tool charges now.
 
+A rail spans **only its own record**. Every rail used to start at 2016 whatever
+the tool, so Notion — whose first readable capture is April 2021 — opened on
+five blank years with ticks and gridlines and nothing on them, which reads as
+missing data rather than as a record that starts later. The right edge stays
+today for every tool; only the left edge moves, and the rail is sized to the
+years it actually covers (520px to 1720px).
+
 ## Architecture
 
 **No LLM and no cron.** The corpus is 276 numbers across 35 plan lines and ships in the bundle as a

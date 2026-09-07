@@ -10,7 +10,10 @@ import {
   pct,
   longestHold,
   lastRise,
-  tickYears,
+  domain,
+  fxIn,
+  railWidth,
+  ticksIn,
   planIsStale,
   planHorizon,
   planEnds,
@@ -43,15 +46,19 @@ function Rail({ s, plan }: { s: Series; plan: Plan }) {
   /* One box per RUN of identical prices, not one per capture. Ten identical
      "$12 held" boxes across five years is ten times the ink for one fact; the
      drop lines still show every capture that stands behind the box. */
+  /* This rail spans only its own record — see domain() for why. */
+  const dom = domain(plan);
+  const W = railWidth(dom);
+  const X = (date: string) => fxIn(date, dom);
+
   const rs = runs(pts);
-  const runX = rs.map((r) => {
-    const a = fx(r.points[0].date);
-    const b = fx(r.points[r.points.length - 1].date);
-    return (a + b) / 2;
-  });
+  const runX = rs.map((r) => (X(r.points[0].date) + X(r.points[r.points.length - 1].date)) / 2);
+  /* A box is ~168px wide on a rail of W px, so the gap that avoids a collision
+     is a percentage of THIS rail, not a fixed one. */
+  const gapPct = (176 / W) * 100;
   const last = [-99, -99, -99];
   const rows = runX.map((x) => {
-    const r = [0, 1, 2].find((k) => x - last[k] >= GAP) ?? 0;
+    const r = [0, 1, 2].find((k) => x - last[k] >= gapPct) ?? 0;
     last[r] = x;
     return r;
   });
@@ -61,10 +68,10 @@ function Rail({ s, plan }: { s: Series; plan: Plan }) {
   rs.forEach((r, i) => r.points.forEach((pt) => xOfRun.set(pt.date, runX[i])));
   const H = TAGY + (Math.max(...rows) + 1) * ROWH + 8;
 
-  let d = `M ${fx(pts[0].date).toFixed(2)} ${fy(pts[0].price).toFixed(2)}`;
+  let d = `M ${X(pts[0].date).toFixed(2)} ${fy(pts[0].price).toFixed(2)}`;
   for (let k = 1; k < pts.length; k++) {
-    d += ` L ${fx(pts[k].date).toFixed(2)} ${fy(pts[k - 1].price).toFixed(2)}`;
-    d += ` L ${fx(pts[k].date).toFixed(2)} ${fy(pts[k].price).toFixed(2)}`;
+    d += ` L ${X(pts[k].date).toFixed(2)} ${fy(pts[k - 1].price).toFixed(2)}`;
+    d += ` L ${X(pts[k].date).toFixed(2)} ${fy(pts[k].price).toFixed(2)}`;
   }
 
   const stale = planIsStale(plan);
@@ -79,7 +86,7 @@ function Rail({ s, plan }: { s: Series; plan: Plan }) {
       dir="rtl"
       className="overflow-x-auto rounded-md border border-rule bg-board pt-5 [scrollbar-width:thin]"
     >
-      <div dir="ltr" className="relative mx-6 w-[1680px]" style={{ height: H }}>
+      <div dir="ltr" className="relative mx-6" style={{ height: H, width: W }}>
         {[...new Set([lo, hi])].map((v) => (
           <div key={v}>
             <div
@@ -119,7 +126,7 @@ function Rail({ s, plan }: { s: Series; plan: Plan }) {
             return (
               <polyline
                 key={p.date}
-                points={`${fx(p.date).toFixed(2)},${fy(p.price)} ${fx(p.date).toFixed(2)},${bend} ${xEnd.toFixed(2)},${yEnd}`}
+                points={`${X(p.date).toFixed(2)},${fy(p.price)} ${X(p.date).toFixed(2)},${bend} ${xEnd.toFixed(2)},${yEnd}`}
                 fill="none"
                 stroke="var(--color-wire)"
                 strokeWidth="1"
@@ -130,12 +137,20 @@ function Rail({ s, plan }: { s: Series; plan: Plan }) {
           })}
         </svg>
 
-        {/* nodes and the value printed above the line — drawn in HTML because
-            the SVG x-axis is stretched and would turn every circle into an
-            ellipse */}
-        {pts.map((p, i) => {
-          const y = fy(p.price);
-          const m = moves[i];
+        {/* a node per capture — every archived page is still on the wire */}
+        {pts.map((p) => (
+          <span
+            key={p.date}
+            className="pointer-events-none absolute h-[9px] w-[9px] rounded-full border-2 border-wire bg-board"
+            style={{ left: `${X(p.date)}%`, top: fy(p.price), transform: "translate(-50%,-50%)" }}
+          />
+        ))}
+
+        {/* ONE value chip per run, not per capture. Figma has captures eleven
+            days apart in 2018, and a chip each printed "$12" on top of "$12". */}
+        {rs.map((r) => {
+          const p = r.points[0];
+          const m = r.move;
           const cls =
             m === "rise"
               ? "bg-rise text-rise-ink font-semibold"
@@ -145,17 +160,12 @@ function Rail({ s, plan }: { s: Series; plan: Plan }) {
                   ? "bg-ink text-ground font-semibold"
                   : "text-muted";
           return (
-            <span key={p.date}>
-              <span
-                className="pointer-events-none absolute h-[9px] w-[9px] rounded-full border-2 border-wire bg-board"
-                style={{ left: `${fx(p.date)}%`, top: y, transform: "translate(-50%,-50%)" }}
-              />
-              <span
-                className={`pointer-events-none absolute whitespace-nowrap rounded-[2px] px-1.5 py-px font-mono text-xs tabular-nums ${cls}`}
-                style={{ ...clampSm(fx(p.date)), top: y - 24 }}
-              >
-                {p.price === 0 ? "free" : `$${p.price}`}
-              </span>
+            <span
+              key={p.date}
+              className={`pointer-events-none absolute whitespace-nowrap rounded-[2px] px-1.5 py-px font-mono text-xs tabular-nums ${cls}`}
+              style={{ ...clampSm(X(p.date)), top: fy(p.price) - 24 }}
+            >
+              {r.price === 0 ? "free" : `$${r.price}`}
             </span>
           );
         })}
@@ -222,12 +232,12 @@ function Rail({ s, plan }: { s: Series; plan: Plan }) {
           <>
             <div
               className="pointer-events-none absolute top-0 bottom-5 bg-ground/70"
-              style={{ left: `${fx(planEnds(plan))}%`, right: 0 }}
+              style={{ left: `${X(planEnds(plan))}%`, right: 0 }}
               aria-hidden="true"
             />
             <span
               className="absolute font-mono text-[9px] uppercase tracking-[.12em] text-muted"
-              style={{ left: `${fx(planEnds(plan))}%`, top: 22, marginLeft: 6 }}
+              style={{ left: `${X(planEnds(plan))}%`, top: 22, marginLeft: 6 }}
             >
               no readable capture after {endsIn}
             </span>
@@ -243,11 +253,11 @@ function Rail({ s, plan }: { s: Series; plan: Plan }) {
         </span>
 
         <div className="absolute inset-x-0 bottom-0 h-5">
-          {tickYears().map((y) => (
+          {ticksIn(dom).map((y) => (
             <span
               key={y}
               className="absolute font-mono text-[10px] tabular-nums text-muted"
-              style={{ left: `${fx(`${y}-01-01`)}%`, transform: "translateX(-50%)" }}
+              style={{ left: `${X(`${y}-01-01`)}%`, transform: "translateX(-50%)" }}
             >
               {y}
             </span>
