@@ -1,9 +1,9 @@
-import { Exhibit } from "@/components/Exhibit";
+import { Wall } from "@/components/Wall";
 import { Hero } from "@/components/Hero";
 import { Here } from "@/components/Here";
 import { SponsorSlot } from "@/components/SponsorSlot";
-import { PERCENT } from "@/data/series";
-import { sorted, allMoves, totalPoints } from "@/lib/wall";
+import { PERCENT, SEAT } from "@/data/series";
+import { allMoves, totalPoints } from "@/lib/wall";
 
 /* The page itself is static: every price ships in the bundle, so there is no
    cold start and no request-time work on the thing people came to read.
@@ -14,12 +14,11 @@ import { sorted, allMoves, totalPoints } from "@/lib/wall";
 export const revalidate = 86400;
 
 export default function Page() {
-  const tools = sorted();
   const { rises, cuts } = allMoves();
   // every point on this page IS one archived page, and each one is linked.
   // Do not quote the wider corpus here — the tile must count what is on screen.
   const linked = totalPoints() + PERCENT.reduce((n, s) => n + s.points.length, 0);
-  const toolCount = tools.length + PERCENT.length;
+  const toolCount = SEAT.length + PERCENT.length;
 
   return (
     <main className="mx-auto max-w-[840px] px-5 pb-24 pt-11 sm:px-6">
@@ -27,17 +26,7 @@ export default function Page() {
 
       <Here />
 
-      <p className="mt-7 border-l-[3px] border-accent bg-board px-4 py-3 text-[13.5px] text-muted">
-        Each rail opens on <b className="font-semibold text-ink">today</b> — scroll it left
-        to go back in time. Ordered by{" "}
-        <b className="font-semibold text-ink">how good the record is</b>: how many years the
-        archive caught, how densely, how recently, and whether the price ever moved. The
-        thinnest records sit at the bottom and say so.
-      </p>
-
-      {tools.map((s, i) => (
-        <Exhibit key={s.tool} s={s} rank={i + 1} />
-      ))}
+      <Wall />
 
       {PERCENT.length > 0 && (
         <section className="mt-16 border-t-2 border-ink pt-7">

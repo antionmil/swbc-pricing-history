@@ -27,10 +27,19 @@ keep one line across a plan that merely shares a word: ZEIT sold a $15 "Premium"
 tier that is not the ancestor of today's Vercel Pro, and folding it in reported
 Pro as $15 in 2017 when the page said $50.
 
-Exhibits are ordered by **how good the record is** — a score over how many
-years the archive caught, how densely, how recently, and whether the price ever
-moved. The strongest evidence leads; the thinnest records sit at the bottom and
-say so on the page.
+Exhibits can be ordered three ways, and two of them flip when you click the
+active one again:
+
+- **Best record** (default) — a score over how many years the archive caught,
+  how densely, how recently, how many plans, and whether the price ever moved.
+  It has no direction: nobody opens a page like this wanting the thinnest
+  evidence first.
+- **Entry price** — the newest price on each tool's cheapest paid plan, high or
+  low. GitLab and Intercom lead at $29; GitHub is $4.
+- **Change since first price** — first paid price to newest, biggest rise or
+  biggest cut. Airtable +100%, GitLab +53% one way; Vercel −60%, GitHub −56%
+  the other. Measured off the first PAID price, not off a free tier, or every
+  tool that ever had one would read as an infinite increase.
 
 Each rail opens on **today** at its right-hand edge and scrolls left into the
 past, so the first thing you see is what the tool charges now.

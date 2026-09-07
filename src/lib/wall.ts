@@ -277,6 +277,38 @@ export function quality(s: Series): number {
   return Math.round(reach + density + currency + breadth + movement);
 }
 
+/** The tool's entry price today: the newest price on its cheapest paid plan.
+ *  That is the number a reader means by "what does this cost". */
+export function entryPrice(s: Series): number {
+  const h = headline(s);
+  return h.points[h.points.length - 1].price;
+}
+
+/** Change from the first PAID price on the headline plan to the newest one.
+ *  Measured off the first paid price, not off a free tier, or every tool that
+ *  ever had a free plan would read as an infinite increase. */
+export function totalChange(s: Series): number | null {
+  const h = headline(s);
+  const first = h.points.find((p) => p.price > 0);
+  const last = h.points[h.points.length - 1];
+  if (!first || first.price === 0 || first === last) return null;
+  return (last.price - first.price) / first.price;
+}
+
+export type SortKey = "record" | "price" | "change";
+
+/** Every order the wall offers. `record` is the default and has no direction:
+ *  a worse-evidenced exhibit is never what someone is looking for. */
+export function order(key: SortKey, desc: boolean): Series[] {
+  const list = [...SEAT];
+  if (key === "record") return list.sort((a, b) => quality(b) - quality(a) || a.tool.localeCompare(b.tool));
+  const val = key === "price" ? entryPrice : (s: Series) => totalChange(s) ?? 0;
+  return list.sort((a, b) => {
+    const d = val(a) - val(b);
+    return (desc ? -d : d) || a.tool.localeCompare(b.tool);
+  });
+}
+
 /** Default order: the best-evidenced exhibits first. */
 export function sorted(): Series[] {
   return [...SEAT].sort((a, b) => quality(b) - quality(a) || a.tool.localeCompare(b.tool));
